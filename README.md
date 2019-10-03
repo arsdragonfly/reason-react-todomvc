@@ -1,6 +1,6 @@
 # reason-react-todomvc
 
-TodoMVC in ReasonReact with react hooks.
+TodoMVC in ReasonReact with react hooks. *This project is a WIP.*
 
 ## Run Project
 

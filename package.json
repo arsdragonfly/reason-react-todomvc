@@ -16,10 +16,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "bs-abstract": "^0.17.0",
+    "bs-decode": "^0.8.1",
+    "bs-webapi": "^0.15.4",
     "re-classnames": "^4.0.0",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
-    "reason-react": ">=0.7.0"
+    "reason-react": ">=0.7.0",
+    "relude": "^0.28.1"
   },
   "devDependencies": {
     "bs-platform": "^5.0.6",

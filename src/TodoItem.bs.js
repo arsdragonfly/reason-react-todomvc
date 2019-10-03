@@ -7,7 +7,16 @@ function TodoItem(Props) {
   Props.id;
   Props.text;
   Props.completed;
-  return React.createElement("li", undefined);
+  React.useState((function () {
+          return false;
+        }));
+  localStorage.setItem("token", "tk");
+  var token = localStorage.getItem("token");
+  if (token !== null) {
+    return React.createElement("li", undefined, token);
+  } else {
+    return React.createElement("li", undefined);
+  }
 }
 
 var make = TodoItem;

@@ -16,7 +16,9 @@
   "namespace": true,
   "bs-dependencies": [
     "reason-react",
-    "re-classnames"
+    "re-classnames",
+    "bs-webapi",
+    "bs-decode"
   ],
   "refmt": 3
 }
