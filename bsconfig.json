@@ -18,7 +18,8 @@
     "reason-react",
     "re-classnames",
     "bs-webapi",
-    "bs-decode"
+    "bs-decode",
+    "@glennsl/bs-json"
   ],
   "refmt": 3
 }

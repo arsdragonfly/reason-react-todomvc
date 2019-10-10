@@ -16,6 +16,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@glennsl/bs-json": "^5.0.1",
     "bs-abstract": "^0.17.0",
     "bs-decode": "^0.8.1",
     "bs-webapi": "^0.15.4",
