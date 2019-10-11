@@ -63,3 +63,120 @@ let getStore = () =>
   ->Belt.Option.getWithDefault("{todoItems: [], visibilityFilter: \"All\"}")
   ->Js.Json.parseExn
   ->decodeStore;
+
+let updateStore = (updater: store => store) =>
+  getStore()->Belt.Result.map(updater)->Belt.Result.map(setStore);
+
+let addTodo = (text: string) =>
+  updateStore((s: store) =>
+    {
+      ...s,
+      todoItems:
+        Array.append(
+          s.todoItems,
+          [|
+            {
+              id:
+                s.todoItems
+                ->Belt.Array.reduce(-1, (maxId, todo) =>
+                    max(todo.id, maxId) + 1
+                  )
+                + 1,
+              completed: false,
+              text,
+            },
+          |],
+        ),
+    }
+  );
+
+let deleteTodo = id =>
+  updateStore((s: store) =>
+    {...s, todoItems: s.todoItems->Belt.Array.keep(todo => todo.id == id)}
+  );
+
+let editTodo = (id, text) =>
+  updateStore((s: store) =>
+    {
+      ...s,
+      todoItems:
+        s.todoItems
+        ->Belt.Array.map(todo =>
+            if (todo.id == id) {
+              {...todo, text};
+            } else {
+              todo;
+            }
+          ),
+    }
+  );
+
+let toggleTodo = id =>
+  updateStore((s: store) =>
+    {
+      ...s,
+      todoItems:
+        s.todoItems
+        ->Belt.Array.map(todo =>
+            if (todo.id == id) {
+              {...todo, completed: !todo.completed};
+            } else {
+              todo;
+            }
+          ),
+    }
+  );
+
+let completeAllTodos = () =>
+  updateStore((s: store) => {
+    let areAllMarked = s.todoItems->Belt.Array.every(todo => todo.completed);
+    {
+      ...s,
+      todoItems:
+        s.todoItems
+        ->Belt.Array.map(todo => {...todo, completed: !areAllMarked}),
+    };
+  });
+
+let clearCompletedTodos = () =>
+  updateStore((s: store) =>
+    {...s, todoItems: s.todoItems->Belt.Array.keep(todo => !todo.completed)}
+  );
+
+let getTodosCount = () =>
+  getStore()
+  ->Belt.Result.map((s: store) => s.todoItems->Belt.Array.length)
+  ->Belt.Result.getWithDefault(0);
+
+let getCompletedCount = () =>
+  getStore()
+  ->Belt.Result.map((s: store) =>
+      s.todoItems
+      ->Belt.Array.reduce(0, (count, todo) =>
+          if (todo.completed) {
+            count + 1;
+          } else {
+            count;
+          }
+        )
+    )
+  ->Belt.Result.getWithDefault(0);
+
+let setVisibilityFilter = filter =>
+  updateStore((s: store) => {...s, visibilityFilter: filter});
+
+let getFilteredTodos = filter => {
+  let filter =
+    switch (filter) {
+    | "Completed" => (
+        todoItems => Belt.Array.keep(todoItems, todo => todo.completed)
+      )
+    | "Active" => (
+        todoItems => Belt.Array.keep(todoItems, todo => !todo.completed)
+      )
+    | _ => (todoItems => todoItems)
+    };
+  getStore()
+  ->Belt.Result.map((s: store) => s.todoItems->filter)
+  ->Belt.Result.getWithDefault([||]);
+};
