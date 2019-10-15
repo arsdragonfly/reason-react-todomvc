@@ -19,7 +19,8 @@
     "re-classnames",
     "bs-webapi",
     "bs-decode",
-    "@glennsl/bs-json"
+    "@glennsl/bs-json",
+    "reductive"
   ],
   "refmt": 3
 }
