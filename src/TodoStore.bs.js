@@ -3,12 +3,14 @@
 
 var $$Array = require("bs-platform/lib/js/array.js");
 var Curry = require("bs-platform/lib/js/curry.js");
+var Reductive = require("reductive/src/reductive.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Belt_Option = require("bs-platform/lib/js/belt_Option.js");
 var Belt_Result = require("bs-platform/lib/js/belt_Result.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Json_encode = require("@glennsl/bs-json/src/Json_encode.bs.js");
 var Caml_primitive = require("bs-platform/lib/js/caml_primitive.js");
+var ReductiveContext = require("reductive/src/reductiveContext.js");
 var Decode_AsResult_OfParseError = require("bs-decode/./src/Decode_AsResult_OfParseError.bs.js");
 
 function makeTodoItem(text, completed, id) {
@@ -19,7 +21,32 @@ function makeTodoItem(text, completed, id) {
         ];
 }
 
-function makeStore(todoItems, visibilityFilter) {
+function visibilityFilterToString(filter) {
+  switch (filter) {
+    case 0 : 
+        return "All";
+    case 1 : 
+        return "Active";
+    case 2 : 
+        return "Completed";
+    
+  }
+}
+
+function parseVisibilityFilter(str) {
+  switch (str) {
+    case "Active" : 
+        return /* Active */1;
+    case "All" : 
+        return /* All */0;
+    case "Completed" : 
+        return /* Completed */2;
+    default:
+      return undefined;
+  }
+}
+
+function makeAppState(todoItems, visibilityFilter) {
   return /* record */[
           /* todoItems */todoItems,
           /* visibilityFilter */visibilityFilter
@@ -31,7 +58,14 @@ function decodeTodoItem(json) {
 }
 
 function decodeStore(json) {
-  return Curry._2(Decode_AsResult_OfParseError.Pipeline[/* run */7], json, Curry._3(Decode_AsResult_OfParseError.Pipeline[/* field */1], "visibilityFilter", Decode_AsResult_OfParseError.Pipeline[/* string */17], Curry._3(Decode_AsResult_OfParseError.Pipeline[/* field */1], "todoItems", Curry._1(Decode_AsResult_OfParseError.array, decodeTodoItem), Curry._1(Decode_AsResult_OfParseError.Pipeline[/* succeed */0], makeStore))));
+  return Curry._2(Decode_AsResult_OfParseError.Pipeline[/* run */7], json, Curry._3(Decode_AsResult_OfParseError.Pipeline[/* field */1], "visibilityFilter", Curry._1(Decode_AsResult_OfParseError.variantFromString, parseVisibilityFilter), Curry._3(Decode_AsResult_OfParseError.Pipeline[/* field */1], "todoItems", Curry._1(Decode_AsResult_OfParseError.array, decodeTodoItem), Curry._1(Decode_AsResult_OfParseError.Pipeline[/* succeed */0], makeAppState))));
+}
+
+function decodeStoreWithDefault(json) {
+  return Belt_Result.getWithDefault(decodeStore(json), /* record */[
+              /* todoItems : array */[],
+              /* visibilityFilter : All */0
+            ]);
 }
 
 function encodeTodoItem(t) {
@@ -65,7 +99,7 @@ function encodeStore(s) {
               /* :: */[
                 /* tuple */[
                   "visibilityFilter",
-                  s[/* visibilityFilter */1]
+                  visibilityFilterToString(s[/* visibilityFilter */1])
                 ],
                 /* [] */0
               ]
@@ -78,180 +112,233 @@ function setStore(s) {
 }
 
 function getStore(param) {
-  return decodeStore(JSON.parse(Belt_Option.getWithDefault(Caml_option.null_to_opt(localStorage.getItem("store")), "{todoItems: [], visibilityFilter: \"All\"}")));
+  return decodeStoreWithDefault(JSON.parse(Belt_Option.getWithDefault(Caml_option.null_to_opt(localStorage.getItem("store")), "{\"todoItems\": [], \"visibilityFilter\": \"All\"}")));
 }
 
-function updateStore(updater) {
-  return Belt_Result.map(Belt_Result.map(getStore(/* () */0), updater), setStore);
+function addTodo(text, s) {
+  return /* record */[
+          /* todoItems */$$Array.append(s[/* todoItems */0], /* array */[/* record */[
+                  /* text */text,
+                  /* completed */false,
+                  /* id */Belt_Array.reduce(s[/* todoItems */0], -1, (function (maxId, todo) {
+                          return Caml_primitive.caml_int_max(todo[/* id */2], maxId) + 1 | 0;
+                        })) + 1 | 0
+                ]]),
+          /* visibilityFilter */s[/* visibilityFilter */1]
+        ];
 }
 
-function addTodo(text) {
-  return updateStore((function (s) {
-                return /* record */[
-                        /* todoItems */$$Array.append(s[/* todoItems */0], /* array */[/* record */[
-                                /* text */text,
-                                /* completed */false,
-                                /* id */Belt_Array.reduce(s[/* todoItems */0], -1, (function (maxId, todo) {
-                                        return Caml_primitive.caml_int_max(todo[/* id */2], maxId) + 1 | 0;
-                                      })) + 1 | 0
-                              ]]),
-                        /* visibilityFilter */s[/* visibilityFilter */1]
-                      ];
+function deleteTodo(id, s) {
+  return /* record */[
+          /* todoItems */Belt_Array.keep(s[/* todoItems */0], (function (todo) {
+                  return todo[/* id */2] === id;
+                })),
+          /* visibilityFilter */s[/* visibilityFilter */1]
+        ];
+}
+
+function editTodo(id, text, s) {
+  return /* record */[
+          /* todoItems */Belt_Array.map(s[/* todoItems */0], (function (todo) {
+                  if (todo[/* id */2] === id) {
+                    return /* record */[
+                            /* text */text,
+                            /* completed */todo[/* completed */1],
+                            /* id */todo[/* id */2]
+                          ];
+                  } else {
+                    return todo;
+                  }
+                })),
+          /* visibilityFilter */s[/* visibilityFilter */1]
+        ];
+}
+
+function toggleTodo(id, s) {
+  return /* record */[
+          /* todoItems */Belt_Array.map(s[/* todoItems */0], (function (todo) {
+                  if (todo[/* id */2] === id) {
+                    return /* record */[
+                            /* text */todo[/* text */0],
+                            /* completed */!todo[/* completed */1],
+                            /* id */todo[/* id */2]
+                          ];
+                  } else {
+                    return todo;
+                  }
+                })),
+          /* visibilityFilter */s[/* visibilityFilter */1]
+        ];
+}
+
+function toggleAllTodos(s) {
+  var areAllMarked = Belt_Array.every(s[/* todoItems */0], (function (todo) {
+          return todo[/* completed */1];
+        }));
+  return /* record */[
+          /* todoItems */Belt_Array.map(s[/* todoItems */0], (function (todo) {
+                  return /* record */[
+                          /* text */todo[/* text */0],
+                          /* completed */!areAllMarked,
+                          /* id */todo[/* id */2]
+                        ];
+                })),
+          /* visibilityFilter */s[/* visibilityFilter */1]
+        ];
+}
+
+function clearCompletedTodos(s) {
+  return /* record */[
+          /* todoItems */Belt_Array.keep(s[/* todoItems */0], (function (todo) {
+                  return !todo[/* completed */1];
+                })),
+          /* visibilityFilter */s[/* visibilityFilter */1]
+        ];
+}
+
+function getTodosCount(s) {
+  return s[/* todoItems */0].length;
+}
+
+function getCompletedCount(s) {
+  return Belt_Array.reduce(s[/* todoItems */0], 0, (function (count, todo) {
+                if (todo[/* completed */1]) {
+                  return count + 1 | 0;
+                } else {
+                  return count;
+                }
               }));
 }
 
-function deleteTodo(id) {
-  return updateStore((function (s) {
-                return /* record */[
-                        /* todoItems */Belt_Array.keep(s[/* todoItems */0], (function (todo) {
-                                return todo[/* id */2] === id;
-                              })),
-                        /* visibilityFilter */s[/* visibilityFilter */1]
-                      ];
-              }));
+function setVisibilityFilter(filter, s) {
+  return /* record */[
+          /* todoItems */s[/* todoItems */0],
+          /* visibilityFilter */filter
+        ];
 }
 
-function editTodo(id, text) {
-  return updateStore((function (s) {
-                return /* record */[
-                        /* todoItems */Belt_Array.map(s[/* todoItems */0], (function (todo) {
-                                if (todo[/* id */2] === id) {
-                                  return /* record */[
-                                          /* text */text,
-                                          /* completed */todo[/* completed */1],
-                                          /* id */todo[/* id */2]
-                                        ];
-                                } else {
-                                  return todo;
-                                }
-                              })),
-                        /* visibilityFilter */s[/* visibilityFilter */1]
-                      ];
-              }));
-}
-
-function toggleTodo(id) {
-  return updateStore((function (s) {
-                return /* record */[
-                        /* todoItems */Belt_Array.map(s[/* todoItems */0], (function (todo) {
-                                if (todo[/* id */2] === id) {
-                                  return /* record */[
-                                          /* text */todo[/* text */0],
-                                          /* completed */!todo[/* completed */1],
-                                          /* id */todo[/* id */2]
-                                        ];
-                                } else {
-                                  return todo;
-                                }
-                              })),
-                        /* visibilityFilter */s[/* visibilityFilter */1]
-                      ];
-              }));
-}
-
-function completeAllTodos(param) {
-  return updateStore((function (s) {
-                var areAllMarked = Belt_Array.every(s[/* todoItems */0], (function (todo) {
-                        return todo[/* completed */1];
-                      }));
-                return /* record */[
-                        /* todoItems */Belt_Array.map(s[/* todoItems */0], (function (todo) {
-                                return /* record */[
-                                        /* text */todo[/* text */0],
-                                        /* completed */!areAllMarked,
-                                        /* id */todo[/* id */2]
-                                      ];
-                              })),
-                        /* visibilityFilter */s[/* visibilityFilter */1]
-                      ];
-              }));
-}
-
-function clearCompletedTodos(param) {
-  return updateStore((function (s) {
-                return /* record */[
-                        /* todoItems */Belt_Array.keep(s[/* todoItems */0], (function (todo) {
-                                return !todo[/* completed */1];
-                              })),
-                        /* visibilityFilter */s[/* visibilityFilter */1]
-                      ];
-              }));
-}
-
-function getTodosCount(param) {
-  return Belt_Result.getWithDefault(Belt_Result.map(getStore(/* () */0), (function (s) {
-                    return s[/* todoItems */0].length;
-                  })), 0);
-}
-
-function getCompletedCount(param) {
-  return Belt_Result.getWithDefault(Belt_Result.map(getStore(/* () */0), (function (s) {
-                    return Belt_Array.reduce(s[/* todoItems */0], 0, (function (count, todo) {
-                                  if (todo[/* completed */1]) {
-                                    return count + 1 | 0;
-                                  } else {
-                                    return count;
-                                  }
-                                }));
-                  })), 0);
-}
-
-function setVisibilityFilter(filter) {
-  return updateStore((function (s) {
-                return /* record */[
-                        /* todoItems */s[/* todoItems */0],
-                        /* visibilityFilter */filter
-                      ];
-              }));
-}
-
-function getFilteredTodos(filter) {
+function getFilteredTodos(filter, s) {
   var filter$1;
   switch (filter) {
-    case "Active" : 
+    case 0 : 
+        filter$1 = (function (todoItems) {
+            return todoItems;
+          });
+        break;
+    case 1 : 
         filter$1 = (function (todoItems) {
             return Belt_Array.keep(todoItems, (function (todo) {
                           return !todo[/* completed */1];
                         }));
           });
         break;
-    case "Completed" : 
+    case 2 : 
         filter$1 = (function (todoItems) {
             return Belt_Array.keep(todoItems, (function (todo) {
                           return todo[/* completed */1];
                         }));
           });
         break;
-    default:
-      filter$1 = (function (todoItems) {
-          return todoItems;
-        });
+    
   }
-  return Belt_Result.getWithDefault(Belt_Result.map(getStore(/* () */0), (function (s) {
-                    return Curry._1(filter$1, s[/* todoItems */0]);
-                  })), /* array */[]);
+  return Curry._1(filter$1, s[/* todoItems */0]);
+}
+
+function appReducer(state, action) {
+  var tmp;
+  if (typeof action === "number") {
+    tmp = action === 0 ? toggleAllTodos : clearCompletedTodos;
+  } else {
+    switch (action.tag | 0) {
+      case 0 : 
+          var partial_arg = action[0];
+          tmp = (function (param) {
+              return addTodo(partial_arg, param);
+            });
+          break;
+      case 1 : 
+          var partial_arg$1 = action[0];
+          tmp = (function (param) {
+              return deleteTodo(partial_arg$1, param);
+            });
+          break;
+      case 2 : 
+          var text = action[1];
+          var id = action[0];
+          tmp = (function (param) {
+              return editTodo(id, text, param);
+            });
+          break;
+      case 3 : 
+          var partial_arg$2 = action[0];
+          tmp = (function (param) {
+              return toggleTodo(partial_arg$2, param);
+            });
+          break;
+      case 4 : 
+          var partial_arg$3 = action[0];
+          tmp = (function (param) {
+              return setVisibilityFilter(partial_arg$3, param);
+            });
+          break;
+      
+    }
+  }
+  return tmp(state);
+}
+
+var appStore = Reductive.Store[/* create */0](appReducer, getStore(/* () */0), (function (store, next, action) {
+        Curry._1(next, action);
+        return setStore(Reductive.Store[/* getState */5](store));
+      }), /* () */0);
+
+var include = ReductiveContext.Make(/* module */[]);
+
+var AppStore_000 = /* Provider */include[0];
+
+var AppStore_001 = /* useSelector */include[1];
+
+var AppStore_002 = /* useDispatch */include[2];
+
+var AppStore_003 = /* useStore */include[3];
+
+var AppStore = /* module */[
+  AppStore_000,
+  AppStore_001,
+  AppStore_002,
+  AppStore_003
+];
+
+function selector(state) {
+  return state;
 }
 
 var Decode = 0;
 
 exports.makeTodoItem = makeTodoItem;
-exports.makeStore = makeStore;
+exports.visibilityFilterToString = visibilityFilterToString;
+exports.parseVisibilityFilter = parseVisibilityFilter;
+exports.makeAppState = makeAppState;
 exports.Decode = Decode;
 exports.decodeTodoItem = decodeTodoItem;
 exports.decodeStore = decodeStore;
+exports.decodeStoreWithDefault = decodeStoreWithDefault;
 exports.encodeTodoItem = encodeTodoItem;
 exports.encodeStore = encodeStore;
 exports.setStore = setStore;
 exports.getStore = getStore;
-exports.updateStore = updateStore;
 exports.addTodo = addTodo;
 exports.deleteTodo = deleteTodo;
 exports.editTodo = editTodo;
 exports.toggleTodo = toggleTodo;
-exports.completeAllTodos = completeAllTodos;
+exports.toggleAllTodos = toggleAllTodos;
 exports.clearCompletedTodos = clearCompletedTodos;
 exports.getTodosCount = getTodosCount;
 exports.getCompletedCount = getCompletedCount;
 exports.setVisibilityFilter = setVisibilityFilter;
 exports.getFilteredTodos = getFilteredTodos;
-/* Decode_AsResult_OfParseError Not a pure module */
+exports.appReducer = appReducer;
+exports.appStore = appStore;
+exports.AppStore = AppStore;
+exports.selector = selector;
+/* appStore Not a pure module */

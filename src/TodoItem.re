@@ -1,12 +1,13 @@
 [@react.component]
-let make = (~id, ~text, ~completed) => {
+let make = (~id, ~text, ~completed, ~dispatch) => {
+  open TodoStore;
   let (editing, setEditing) = React.useState(() => false);
   let handleDoubleClick = () => setEditing(_ => true);
   let handleSave = (id, text) =>
     if (text->String.length == 0) {
-      TodoStore.deleteTodo(id)->Belt.Result.getWithDefault();
+      dispatch(DeleteTodo(id));
     } else {
-      TodoStore.editTodo(id, text)->Belt.Result.getWithDefault();
+      dispatch(EditTodo(id, text));
     };
   let element =
     if (editing) {
@@ -23,18 +24,14 @@ let make = (~id, ~text, ~completed) => {
           className="toggle"
           type_="checkbox"
           checked=completed
-          onChange={_ =>
-            TodoStore.toggleTodo(id)->Belt.Result.getWithDefault()
-          }
+          onChange={_ => dispatch(ToggleTodo(id))}
         />
         <label onDoubleClick={_ => handleDoubleClick()}>
           {ReasonReact.string(text)}
         </label>
         <button
           className="destroy"
-          onClick={_ =>
-            TodoStore.deleteTodo(id)->Belt.Result.getWithDefault()
-          }
+          onClick={_ => dispatch(DeleteTodo(id))}
         />
       </div>;
     };

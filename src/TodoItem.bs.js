@@ -2,16 +2,16 @@
 'use strict';
 
 var Cn = require("re-classnames/src/Cn.bs.js");
+var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
-var Belt_Result = require("bs-platform/lib/js/belt_Result.js");
-var TodoStore$ReactHooksTemplate = require("./TodoStore.bs.js");
 var TodoTextInput$ReactHooksTemplate = require("./TodoTextInput.bs.js");
 
 function TodoItem(Props) {
   var id = Props.id;
   var text = Props.text;
   var completed = Props.completed;
+  var dispatch = Props.dispatch;
   var match = React.useState((function () {
           return false;
         }));
@@ -22,9 +22,12 @@ function TodoItem(Props) {
               var id$1 = id;
               var text$1 = text;
               if (text$1.length === 0) {
-                return Belt_Result.getWithDefault(TodoStore$ReactHooksTemplate.deleteTodo(id$1), /* () */0);
+                return Curry._1(dispatch, /* DeleteTodo */Block.__(1, [id$1]));
               } else {
-                return Belt_Result.getWithDefault(TodoStore$ReactHooksTemplate.editTodo(id$1, text$1), /* () */0);
+                return Curry._1(dispatch, /* EditTodo */Block.__(2, [
+                              id$1,
+                              text$1
+                            ]));
               }
             }),
           text: text,
@@ -38,7 +41,7 @@ function TodoItem(Props) {
               checked: completed,
               type: "checkbox",
               onChange: (function (param) {
-                  return Belt_Result.getWithDefault(TodoStore$ReactHooksTemplate.toggleTodo(id), /* () */0);
+                  return Curry._1(dispatch, /* ToggleTodo */Block.__(3, [id]));
                 })
             }), React.createElement("label", {
               onDoubleClick: (function (param) {
@@ -49,7 +52,7 @@ function TodoItem(Props) {
             }, text), React.createElement("button", {
               className: "destroy",
               onClick: (function (param) {
-                  return Belt_Result.getWithDefault(TodoStore$ReactHooksTemplate.deleteTodo(id), /* () */0);
+                  return Curry._1(dispatch, /* DeleteTodo */Block.__(1, [id]));
                 })
             }));
   return React.createElement("li", {
