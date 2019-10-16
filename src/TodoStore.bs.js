@@ -131,7 +131,7 @@ function addTodo(text, s) {
 function deleteTodo(id, s) {
   return /* record */[
           /* todoItems */Belt_Array.keep(s[/* todoItems */0], (function (todo) {
-                  return todo[/* id */2] === id;
+                  return todo[/* id */2] !== id;
                 })),
           /* visibilityFilter */s[/* visibilityFilter */1]
         ];

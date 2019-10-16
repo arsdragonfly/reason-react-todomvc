@@ -22,13 +22,16 @@ function TodoItem(Props) {
               var id$1 = id;
               var text$1 = text;
               if (text$1.length === 0) {
-                return Curry._1(dispatch, /* DeleteTodo */Block.__(1, [id$1]));
+                Curry._1(dispatch, /* DeleteTodo */Block.__(1, [id$1]));
               } else {
-                return Curry._1(dispatch, /* EditTodo */Block.__(2, [
-                              id$1,
-                              text$1
-                            ]));
+                Curry._1(dispatch, /* EditTodo */Block.__(2, [
+                        id$1,
+                        text$1
+                      ]));
               }
+              return Curry._1(setEditing, (function (param) {
+                            return false;
+                          }));
             }),
           text: text,
           placeholder: "",

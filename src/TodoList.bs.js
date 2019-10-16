@@ -16,7 +16,8 @@ function TodoList(Props) {
                                 id: todo[/* id */2],
                                 text: todo[/* text */0],
                                 completed: todo[/* completed */1],
-                                dispatch: dispatch
+                                dispatch: dispatch,
+                                key: String(todo[/* id */2])
                               });
                   })));
 }

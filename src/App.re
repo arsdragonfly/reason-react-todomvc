@@ -3,5 +3,5 @@ let make = () => {
   open TodoStore;
   let dispatch = AppStore.useDispatch();
   let state = AppStore.useSelector(selector);
-  <div> <TodoList state dispatch /> </div>;
+  <div> <Header dispatch /> <MainSection state dispatch /> </div>;
 };

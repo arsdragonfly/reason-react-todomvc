@@ -3,12 +3,14 @@ let make = (~id, ~text, ~completed, ~dispatch) => {
   open TodoStore;
   let (editing, setEditing) = React.useState(() => false);
   let handleDoubleClick = () => setEditing(_ => true);
-  let handleSave = (id, text) =>
+  let handleSave = (id, text) => {
     if (text->String.length == 0) {
       dispatch(DeleteTodo(id));
     } else {
       dispatch(EditTodo(id, text));
     };
+    setEditing(_ => false)
+  }
   let element =
     if (editing) {
       <TodoTextInput

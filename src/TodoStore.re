@@ -125,7 +125,7 @@ let addTodo = (text: string, s: appState) => {
 
 let deleteTodo = (id, s: appState) => {
   ...s,
-  todoItems: s.todoItems->Belt.Array.keep(todo => todo.id == id),
+  todoItems: s.todoItems->Belt.Array.keep(todo => todo.id != id),
 };
 
 let editTodo = (id, text, s: appState) => {
