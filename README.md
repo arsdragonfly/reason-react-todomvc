@@ -1,6 +1,8 @@
 # reason-react-todomvc
 
-TodoMVC in ReasonReact with react hooks.
+TodoMVC in ReasonReact using the new [React Hooks API and function components](https://reasonml.github.io/reason-react/blog/2019/04/10/react-hooks), and [Reductive](https://github.com/reasonml-community/reductive) for localStorage persistence. Inspired by [this](https://codesandbox.io/s/74yq01ovl1) TodoMVC implementation.
+
+![screenshot](screenshot.png)
 
 ## Run Project
 
@@ -36,7 +38,3 @@ This will replace the development artifact `build/Index.js` for an optimized ver
 If you make use of routing (via `ReasonReact.Router` or similar logic) ensure that server-side routing handles your routes or that 404's are directed back to `index.html` (which is how the dev server is set up).
 
 **To enable dead code elimination**, change `bsconfig.json`'s `package-specs` `module` from `"commonjs"` to `"es6"`. Then re-run the above 2 commands. This will allow Webpack to remove unused code.
-
-## Caveats
-
-### Belt
