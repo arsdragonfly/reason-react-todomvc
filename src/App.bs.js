@@ -10,7 +10,9 @@ var MainSection$ReactHooksTemplate = require("./MainSection.bs.js");
 function App(Props) {
   var dispatch = Curry._1(TodoStore$ReactHooksTemplate.AppStore[/* useDispatch */2], /* () */0);
   var state = Curry._1(TodoStore$ReactHooksTemplate.AppStore[/* useSelector */1], TodoStore$ReactHooksTemplate.selector);
-  return React.createElement("div", undefined, React.createElement(Header$ReactHooksTemplate.make, {
+  return React.createElement("div", {
+              className: "todoapp"
+            }, React.createElement(Header$ReactHooksTemplate.make, {
                   dispatch: dispatch
                 }), React.createElement(MainSection$ReactHooksTemplate.make, {
                   state: state,

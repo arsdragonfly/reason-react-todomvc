@@ -9,6 +9,6 @@ var TodoStore$ReactHooksTemplate = require("./TodoStore.bs.js");
 ReactDOMRe.renderToElementWithId(React.createElement(TodoStore$ReactHooksTemplate.AppStore[/* Provider */0][/* make */0], {
           children: React.createElement(App$ReactHooksTemplate.make, { }),
           store: TodoStore$ReactHooksTemplate.appStore
-        }), "index2");
+        }), "index");
 
 /*  Not a pure module */

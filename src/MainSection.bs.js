@@ -3,6 +3,7 @@
 
 var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
+var Footer$ReactHooksTemplate = require("./Footer.bs.js");
 var TodoList$ReactHooksTemplate = require("./TodoList.bs.js");
 var TodoStore$ReactHooksTemplate = require("./TodoStore.bs.js");
 
@@ -13,19 +14,22 @@ function MainSection(Props) {
   var completedCount = TodoStore$ReactHooksTemplate.getCompletedCount(state);
   return React.createElement("section", {
               className: "main"
-            }, React.createElement("span", undefined, React.createElement("input", {
-                      defaultChecked: completedCount === todosCount,
-                      className: "toggle-all",
-                      type: "checkbox",
-                      onChange: (function (param) {
-                          return Curry._1(dispatch, /* ToggleAllTodos */0);
-                        })
-                    }), React.createElement("label", {
-                      htmlFor: "toggle-all"
-                    })), React.createElement(TodoList$ReactHooksTemplate.make, {
+            }, todosCount > 0 ? React.createElement("span", undefined, React.createElement("input", {
+                        defaultChecked: completedCount === todosCount,
+                        className: "toggle-all",
+                        type: "checkbox"
+                      }), React.createElement("label", {
+                        htmlFor: "toggle-all",
+                        onClick: (function (param) {
+                            return Curry._1(dispatch, /* ToggleAllTodos */0);
+                          })
+                      })) : null, React.createElement(TodoList$ReactHooksTemplate.make, {
                   state: state,
                   dispatch: dispatch
-                }));
+                }), todosCount > 0 ? React.createElement(Footer$ReactHooksTemplate.make, {
+                    state: state,
+                    dispatch: dispatch
+                  }) : null);
 }
 
 var make = MainSection;

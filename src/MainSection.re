@@ -4,15 +4,26 @@ let make = (~state, ~dispatch) => {
   let todosCount = getTodosCount(state);
   let completedCount = getCompletedCount(state);
   <section className="main">
-    <span>
-      <input
-        className="toggle-all"
-        type_="checkbox"
-        defaultChecked={completedCount == todosCount}
-        onChange={_ => dispatch(ToggleAllTodos)}
-      />
-      <label htmlFor="toggle-all" />
-    </span>
+    {if (todosCount > 0) {
+       <span>
+         <input
+           className="toggle-all"
+           type_="checkbox"
+           defaultChecked={completedCount == todosCount}
+         />
+         <label
+           htmlFor="toggle-all"
+           onClick={_ => dispatch(ToggleAllTodos)}
+         />
+       </span>;
+     } else {
+       ReasonReact.null;
+     }}
     <TodoList state dispatch />
+    {if (todosCount > 0) {
+       <Footer state dispatch />;
+     } else {
+       ReasonReact.null;
+     }}
   </section>;
 };

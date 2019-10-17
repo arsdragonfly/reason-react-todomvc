@@ -25,10 +25,12 @@
     "react-dom": "^16.8.1",
     "reason-react": ">=0.7.0",
     "reductive": "^2.0.0",
-    "relude": "^0.28.1"
+    "relude": "^0.28.1",
+    "todomvc-app-css": "^2.3.0"
   },
   "devDependencies": {
     "bs-platform": "^5.0.6",
+    "copy-webpack-plugin": "^5.0.4",
     "html-webpack-plugin": "^3.2.0",
     "webpack": "^4.0.1",
     "webpack-cli": "^3.1.1",

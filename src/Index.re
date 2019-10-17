@@ -7,5 +7,5 @@ open TodoStore;
 
 ReactDOMRe.renderToElementWithId(
   <AppStore.Provider store=appStore> <App /> </AppStore.Provider>,
-  "index2",
+  "index",
 );
